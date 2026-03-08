@@ -1,0 +1,5 @@
+{
+  "name": "Kasir Sekarang",
+  "description": "Sistem kasir modern, aksesibel, dan berperforma tinggi untuk kafe dan toko ritel.",
+  "requestFramePermissions": ["microphone"]
+}
