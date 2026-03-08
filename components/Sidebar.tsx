@@ -70,13 +70,13 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     )}>
       <div className="p-6 flex items-center gap-3">
         <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-          <span className="text-white font-bold text-xl">K</span>
+          <span className="text-white font-bold text-xl">C</span>
         </div>
         <span className={cn(
           "font-display font-bold text-xl hidden md:block",
           isHighContrast ? "text-white" : "text-zinc-900"
         )}>
-          Kasir Sekarang
+          Cafe UMM Zone
         </span>
       </div>
 

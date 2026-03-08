@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Lumina POS | Modern Cashier System',
+  title: 'Cafe UMM Zone | Modern Cashier System',
   description: 'High-performance, accessible cashier system for modern businesses.',
 };
 

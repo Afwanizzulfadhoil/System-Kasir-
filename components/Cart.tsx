@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useStore } from '@/lib/store';
-import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, Receipt, X } from 'lucide-react';
+import { useStore, PaymentMethod } from '@/lib/store';
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, Receipt, X, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, formatRupiah } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -12,6 +12,7 @@ import confetti from 'canvas-confetti';
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, clearCart, completeOrder, isHighContrast, isLargeText } = useStore();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isQRISOpen, setIsQRISOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -26,9 +27,10 @@ export default function Cart() {
     setIsCheckoutOpen(true);
   };
 
-  const confirmOrder = () => {
-    completeOrder();
+  const confirmOrder = (method: PaymentMethod) => {
+    completeOrder(method);
     setIsCheckoutOpen(false);
+    setIsQRISOpen(false);
     toast.success('Pesanan berhasil diselesaikan!');
     confetti({
       particleCount: 150,
@@ -51,7 +53,12 @@ export default function Cart() {
           isHighContrast ? "text-white" : "text-zinc-900"
         )}>
           Pesanan Saat Ini
-          <span className="bg-indigo-100 text-indigo-600 text-xs px-2 py-1 rounded-full">{cart.length}</span>
+          <span className={cn(
+            "text-xs px-2 py-1 rounded-full transition-colors",
+            isHighContrast ? "bg-black text-white border border-zinc-700" : "bg-indigo-100 text-indigo-600"
+          )}>
+            {cart.length}
+          </span>
         </h2>
         {cart.length > 0 && (
           <button 
@@ -72,7 +79,10 @@ export default function Cart() {
               animate={{ opacity: 1 }}
               className="h-full flex flex-col items-center justify-center text-zinc-400 space-y-4"
             >
-              <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center">
+              <div className={cn(
+                "w-20 h-20 rounded-full flex items-center justify-center",
+                isHighContrast ? "bg-zinc-800" : "bg-zinc-50"
+              )}>
                 <ShoppingCart className="w-10 h-10" />
               </div>
               <p className="font-medium">Keranjang Anda kosong</p>
@@ -87,7 +97,7 @@ export default function Cart() {
                 key={item.id}
                 className={cn(
                   "p-4 rounded-2xl border bg-zinc-50 flex gap-4 items-center group",
-                  isHighContrast && "bg-zinc-900 border-zinc-800 text-white"
+                  isHighContrast && "bg-black border-zinc-800 text-white"
                 )}
               >
                 <div className="flex-1">
@@ -100,17 +110,26 @@ export default function Cart() {
                   <p className="text-zinc-400 text-xs font-mono">{formatRupiah(item.price)}</p>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-white rounded-xl border p-1 shadow-sm">
+                <div className={cn(
+                  "flex items-center gap-2 bg-white rounded-xl border p-1 shadow-sm transition-colors",
+                  isHighContrast && "bg-black border-zinc-700 text-white"
+                )}>
                   <button 
                     onClick={() => updateQuantity(item.id, -1)}
-                    className="p-1 hover:bg-zinc-100 rounded-lg transition-colors"
+                    className={cn(
+                      "p-1 rounded-lg transition-colors",
+                      isHighContrast ? "hover:bg-zinc-800" : "hover:bg-zinc-100"
+                    )}
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
                   <button 
                     onClick={() => updateQuantity(item.id, 1)}
-                    className="p-1 hover:bg-zinc-100 rounded-lg transition-colors"
+                    className={cn(
+                      "p-1 rounded-lg transition-colors",
+                      isHighContrast ? "hover:bg-zinc-800" : "hover:bg-zinc-100"
+                    )}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -130,7 +149,7 @@ export default function Cart() {
 
       <div className={cn(
         "p-6 border-t space-y-4 bg-zinc-50/50",
-        isHighContrast && "bg-zinc-900 border-zinc-800"
+        isHighContrast && "bg-black border-zinc-800"
       )}>
         <div className="space-y-2">
           <div className="flex justify-between text-zinc-500 text-sm">
@@ -155,10 +174,10 @@ export default function Cart() {
           onClick={handleCheckout}
           disabled={cart.length === 0}
           className={cn(
-            "w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-100 active:scale-95",
+            "w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl active:scale-95",
             cart.length === 0 
               ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none" 
-              : "bg-indigo-600 text-white hover:bg-indigo-700",
+              : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100",
             isLargeText && "text-xl py-6"
           )}
         >
@@ -170,40 +189,54 @@ export default function Cart() {
       {/* Checkout Modal */}
       <AnimatePresence>
         {isCheckoutOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div 
+            onClick={() => setIsCheckoutOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
             <motion.div
+              onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className={cn(
                 "w-full max-w-md bg-white rounded-[40px] shadow-2xl overflow-hidden",
-                isHighContrast && "bg-zinc-900 text-white border border-zinc-700"
+                isHighContrast && "bg-black text-white border border-zinc-700"
               )}
             >
               <div className="p-8 text-center space-y-6">
-                <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
-                  <Receipt className="w-10 h-10 text-indigo-600" />
+                <div className={cn(
+                  "w-20 h-20 rounded-full flex items-center justify-center mx-auto",
+                  isHighContrast ? "bg-zinc-800" : "bg-indigo-100"
+                )}>
+                  <Receipt className={cn("w-10 h-10", isHighContrast ? "text-white" : "text-indigo-600")} />
                 </div>
                 
                 <div>
                   <h3 className="text-2xl font-display font-bold mb-2">Selesaikan Pembayaran</h3>
-                  <p className="text-zinc-500">Pilih metode pembayaran untuk <span className="font-bold text-zinc-900">{formatRupiah(total)}</span></p>
+                  <p className="text-zinc-500">Pilih metode pembayaran untuk <span className={cn("font-bold", isHighContrast ? "text-white" : "text-zinc-900")}>{formatRupiah(total)}</span></p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <button 
-                    onClick={confirmOrder}
-                    className="flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-zinc-100 hover:border-indigo-600 hover:bg-indigo-50 transition-all group"
+                    onClick={() => confirmOrder('Card')}
+                    className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-zinc-100 hover:border-indigo-600 hover:bg-indigo-50 transition-all group"
                   >
-                    <CreditCard className="w-8 h-8 text-zinc-400 group-hover:text-indigo-600" />
-                    <span className="font-bold">Kartu</span>
+                    <CreditCard className="w-6 h-6 text-zinc-400 group-hover:text-indigo-600" />
+                    <span className="text-xs font-bold">Kartu</span>
                   </button>
                   <button 
-                    onClick={confirmOrder}
-                    className="flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-zinc-100 hover:border-emerald-600 hover:bg-emerald-50 transition-all group"
+                    onClick={() => confirmOrder('Cash')}
+                    className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-zinc-100 hover:border-emerald-600 hover:bg-emerald-50 transition-all group"
                   >
-                    <Banknote className="w-8 h-8 text-zinc-400 group-hover:text-emerald-600" />
-                    <span className="font-bold">Tunai</span>
+                    <Banknote className="w-6 h-6 text-zinc-400 group-hover:text-emerald-600" />
+                    <span className="text-xs font-bold">Tunai</span>
+                  </button>
+                  <button 
+                    onClick={() => setIsQRISOpen(true)}
+                    className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-zinc-100 hover:border-orange-600 hover:bg-orange-50 transition-all group"
+                  >
+                    <QrCode className="w-6 h-6 text-zinc-400 group-hover:text-orange-600" />
+                    <span className="text-xs font-bold">QRIS</span>
                   </button>
                 </div>
 
@@ -214,6 +247,63 @@ export default function Cart() {
                   Batal
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* QRIS Simulation Modal */}
+      <AnimatePresence>
+        {isQRISOpen && (
+          <div 
+            onClick={() => setIsQRISOpen(false)}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          >
+            <motion.div
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className={cn(
+                "w-full max-w-sm bg-white rounded-[40px] p-8 text-center space-y-6",
+                isHighContrast && "bg-black text-white border border-zinc-700"
+              )}
+            >
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold">Pembayaran QRIS</h3>
+                <button onClick={() => setIsQRISOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="aspect-square bg-white p-4 rounded-3xl border-4 border-indigo-600 flex items-center justify-center relative overflow-hidden">
+                {/* Simulated QR Code */}
+                <div className="grid grid-cols-4 grid-rows-4 gap-2 w-full h-full opacity-20">
+                   {Array.from({ length: 16 }).map((_, i) => (
+                     <div key={i} className={cn("bg-black rounded-sm", i % 3 === 0 && "bg-indigo-600")} />
+                   ))}
+                </div>
+                <QrCode className="w-32 h-32 text-indigo-600 absolute" />
+                <div className="absolute bottom-2 right-2 bg-indigo-600 text-[8px] text-white px-2 py-1 rounded font-bold">
+                  LUMINA POS
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-zinc-500 mb-1">Total Tagihan</p>
+                <p className="text-2xl font-mono font-bold text-indigo-600">{formatRupiah(total)}</p>
+              </div>
+
+              <div className="bg-indigo-50 p-4 rounded-2xl text-xs text-indigo-600 font-medium">
+                Silakan scan kode di atas menggunakan aplikasi m-banking atau e-wallet Anda.
+              </div>
+
+              <button 
+                onClick={() => confirmOrder('QRIS')}
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg"
+              >
+                Simulasi Berhasil Bayar
+              </button>
             </motion.div>
           </div>
         )}

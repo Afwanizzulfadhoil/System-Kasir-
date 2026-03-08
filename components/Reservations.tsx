@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useStore, Reservation } from '@/lib/store';
-import { Calendar, Users, Clock, Plus, CheckCircle2, XCircle, Clock4, Search, Trash2 } from 'lucide-react';
+import { useStore, Reservation, PaymentMethod } from '@/lib/store';
+import { Calendar, Users, Clock, Plus, CheckCircle2, XCircle, Clock4, Search, Trash2, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -25,7 +25,8 @@ export default function Reservations() {
     time: '18:00',
     guests: 2,
     status: 'pending',
-    preOrders: []
+    preOrders: [],
+    paymentMethod: 'Cash'
   });
 
   const handleAddProductToRes = (productId: string) => {
@@ -72,7 +73,8 @@ export default function Reservations() {
       time: '18:00',
       guests: 2,
       status: 'pending',
-      preOrders: []
+      preOrders: [],
+      paymentMethod: 'Cash'
     });
     toast.success('Reservasi berhasil dibuat!');
   };
@@ -187,6 +189,21 @@ export default function Reservations() {
                       <option value="Meeting">Meeting / Rapat</option>
                       <option value="Iftar">Buka Puasa Bersama (Iftar)</option>
                       <option value="Gathering">Gathering / Kumpul Keluarga</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Metode Pembayaran</label>
+                    <select 
+                      value={newRes.paymentMethod}
+                      onChange={e => setNewRes({...newRes, paymentMethod: e.target.value as PaymentMethod})}
+                      className={cn(
+                        "w-full p-4 rounded-2xl border bg-zinc-50 focus:bg-white transition-all",
+                        isHighContrast && "bg-zinc-800 border-zinc-700 focus:bg-zinc-900"
+                      )}
+                    >
+                      <option value="Cash">Tunai</option>
+                      <option value="QRIS">QRIS</option>
+                      <option value="Card">Kartu</option>
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -354,7 +371,7 @@ export default function Reservations() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-zinc-50">
+                  <div className="grid grid-cols-4 gap-2 py-4 border-y border-zinc-50">
                     <div className="text-center">
                       <Calendar className="w-4 h-4 mx-auto mb-1 text-zinc-400" />
                       <p className="text-[10px] font-bold text-zinc-400 uppercase">Tanggal</p>
@@ -397,6 +414,16 @@ export default function Reservations() {
                       <Users className="w-4 h-4 mx-auto mb-1 text-zinc-400" />
                       <p className="text-[10px] font-bold text-zinc-400 uppercase">Tamu</p>
                       <p className="text-xs font-bold">{res.guests} Orang</p>
+                    </div>
+                    <div className="text-center">
+                      <CreditCard className="w-4 h-4 mx-auto mb-1 text-zinc-400" />
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase">Bayar</p>
+                      <p className={cn(
+                        "text-[10px] font-bold uppercase",
+                        res.paymentMethod === 'Cash' && "text-emerald-600",
+                        res.paymentMethod === 'QRIS' && "text-orange-600",
+                        res.paymentMethod === 'Card' && "text-indigo-600"
+                      )}>{res.paymentMethod || 'Cash'}</p>
                     </div>
                   </div>
 

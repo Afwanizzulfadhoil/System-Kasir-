@@ -1,5 +1,5 @@
 {
-  "name": "Kasir Sekarang",
+  "name": "Cafe UMM Zone",
   "description": "Sistem kasir modern, aksesibel, dan berperforma tinggi untuk kafe dan toko ritel.",
   "requestFramePermissions": ["microphone"]
 }

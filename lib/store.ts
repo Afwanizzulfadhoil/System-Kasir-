@@ -16,12 +16,15 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export type PaymentMethod = 'Cash' | 'QRIS' | 'Card';
+
 export interface Order {
   id: string;
   items: CartItem[];
   total: number;
   timestamp: number;
   status: 'completed' | 'refunded';
+  paymentMethod: PaymentMethod;
 }
 
 export interface Reservation {
@@ -35,6 +38,7 @@ export interface Reservation {
   guests: number;
   status: 'pending' | 'confirmed' | 'cancelled';
   preOrders?: CartItem[];
+  paymentMethod?: PaymentMethod;
 }
 
 interface POSState {
@@ -50,7 +54,7 @@ interface POSState {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, delta: number) => void;
   clearCart: () => void;
-  completeOrder: () => void;
+  completeOrder: (paymentMethod: PaymentMethod) => void;
   toggleHighContrast: () => void;
   toggleLargeText: () => void;
   addProduct: (product: Omit<Product, 'id'>) => void;
@@ -72,7 +76,7 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: '7', name: 'Blueberry Muffin', price: 24000, category: 'Pastry', image: 'https://picsum.photos/seed/blueberry-muffin/300/300' },
   { id: '8', name: 'Avocado Toast', price: 45000, category: 'Food', image: 'https://picsum.photos/seed/avocado-toast/300/300' },
   { id: '9', name: 'Club Sandwich', price: 55000, category: 'Food', image: 'https://picsum.photos/seed/club-sandwich/300/300' },
-  { id: '10', name: 'Lumina Mug', price: 75000, category: 'Merch', image: 'https://picsum.photos/seed/coffee-mug/300/300' },
+  { id: '10', name: 'UMM Zone Mug', price: 75000, category: 'Merch', image: 'https://picsum.photos/seed/coffee-mug/300/300' },
 ];
 
 export const useStore = create<POSState>()(
@@ -113,14 +117,18 @@ export const useStore = create<POSState>()(
 
       clearCart: () => set({ cart: [] }),
 
-      completeOrder: () => set((state) => {
+      completeOrder: (paymentMethod) => set((state) => {
         const total = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const tax = total * 0.1;
+        const finalTotal = total + tax;
+        
         const newOrder: Order = {
           id: `ORD-${Date.now()}`,
           items: [...state.cart],
-          total,
+          total: finalTotal,
           timestamp: Date.now(),
-          status: 'completed'
+          status: 'completed',
+          paymentMethod
         };
         
         return {
