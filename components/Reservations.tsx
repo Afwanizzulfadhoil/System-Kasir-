@@ -7,6 +7,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import ConfirmationModal from './ConfirmationModal';
+
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Reservations() {
   const { reservations, products, addReservation, updateReservationStatus, updateReservation, deleteReservation, isHighContrast, isLargeText } = useStore();
@@ -15,6 +18,8 @@ export default function Reservations() {
   const [editTime, setEditTime] = useState('');
   const [search, setSearch] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<{id: string, qty: number}[]>([]);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const [newRes, setNewRes] = useState<Omit<Reservation, 'id'>>({
     name: '',
@@ -87,10 +92,9 @@ export default function Reservations() {
   };
 
   const handleDeleteReservation = (id: string) => {
-    if (window.confirm('Hapus reservasi ini?')) {
-      deleteReservation(id);
-      toast.success('Reservasi berhasil dihapus');
-    }
+    deleteReservation(id);
+    setDeleteId(null);
+    toast.success('Reservasi berhasil dihapus');
   };
 
   const handleUpdateStatus = (id: string, status: Reservation['status']) => {
@@ -106,6 +110,14 @@ export default function Reservations() {
       "flex-1 flex flex-col overflow-hidden bg-zinc-50",
       isHighContrast && "bg-black"
     )}>
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => deleteId && handleDeleteReservation(deleteId)}
+        title="Hapus Reservasi"
+        message="Apakah Anda yakin ingin menghapus reservasi ini? Tindakan ini tidak dapat dibatalkan."
+        isHighContrast={isHighContrast}
+      />
       <div className={cn(
         "p-6 border-b bg-white flex flex-col md:flex-row gap-4 items-center justify-between",
         isHighContrast && "bg-black border-zinc-800"
@@ -128,7 +140,7 @@ export default function Reservations() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-5xl mx-auto space-y-6">
           <AnimatePresence>
             {isAdding && (
@@ -137,17 +149,17 @@ export default function Reservations() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 className={cn(
-                  "bg-white rounded-[40px] border p-8 shadow-2xl relative z-10",
+                  "bg-white rounded-[32px] md:rounded-[40px] border p-4 md:p-8 shadow-2xl relative z-10",
                   isHighContrast && "bg-zinc-900 border-zinc-700"
                 )}
               >
                 <button 
                   onClick={() => setIsAdding(false)}
-                  className="absolute top-8 right-8 text-zinc-400 hover:text-zinc-600"
+                  className="absolute top-4 right-4 md:top-8 md:right-8 text-zinc-400 hover:text-zinc-600"
                 >
-                  <XCircle className="w-8 h-8" />
+                  <XCircle className="w-6 h-6 md:w-8 md:h-8" />
                 </button>
-                <h3 className="text-2xl font-display font-bold mb-8">Formulir Reservasi</h3>
+                <h3 className="text-xl md:text-2xl font-display font-bold mb-6 md:mb-8">Formulir Reservasi</h3>
                 <form onSubmit={handleAddReservation} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Nama Pemesan</label>
@@ -353,7 +365,7 @@ export default function Reservations() {
                         {res.status}
                       </div>
                       <button
-                        onClick={() => handleDeleteReservation(res.id)}
+                        onClick={() => setDeleteId(res.id)}
                         className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
                         title="Hapus Reservasi"
                       >
@@ -469,7 +481,7 @@ export default function Reservations() {
                     )}
                     {res.status === 'confirmed' && (
                       <button 
-                        onClick={() => handleDeleteReservation(res.id)}
+                        onClick={() => setDeleteId(res.id)}
                         className="flex-1 bg-indigo-100 text-indigo-600 py-3 rounded-xl font-bold text-xs hover:bg-indigo-200 transition-all flex items-center justify-center gap-2"
                       >
                         <CheckCircle2 className="w-4 h-4" /> Selesai (Hapus)
@@ -477,7 +489,7 @@ export default function Reservations() {
                     )}
                     {res.status === 'cancelled' && (
                       <button 
-                        onClick={() => handleDeleteReservation(res.id)}
+                        onClick={() => setDeleteId(res.id)}
                         className="flex-1 bg-red-100 text-red-600 py-3 rounded-xl font-bold text-xs hover:bg-red-200 transition-all flex items-center justify-center gap-2"
                       >
                         <Trash2 className="w-4 h-4" /> Hapus Reservasi

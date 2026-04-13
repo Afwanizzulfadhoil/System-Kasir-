@@ -31,10 +31,10 @@ export default function ProductGrid() {
     )}>
       {/* Header / Search */}
       <div className={cn(
-        "p-6 border-b bg-white flex flex-col md:flex-row gap-4 items-center justify-between",
+        "p-4 md:p-6 border-b bg-white flex flex-col lg:flex-row gap-4 items-center justify-between sticky top-0 z-20",
         isHighContrast && "bg-black border-zinc-800"
       )}>
-        <div className="relative w-full md:w-96">
+        <div className="relative w-full lg:w-96">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
           <input
             type="text"
@@ -49,7 +49,7 @@ export default function ProductGrid() {
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 no-scrollbar mask-fade-right">
           {categories.map(cat => (
             <button
               key={cat}
@@ -74,8 +74,8 @@ export default function ProductGrid() {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
           <AnimatePresence mode="popLayout">
             {filteredProducts.map((product) => (
               <motion.button

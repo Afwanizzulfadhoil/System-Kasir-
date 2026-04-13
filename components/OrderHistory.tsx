@@ -7,10 +7,13 @@ import { ShoppingBag, CheckCircle2, RotateCcw, ChevronRight, Printer, X } from '
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, formatRupiah } from '@/lib/utils';
 
+import { useIsMobile } from '@/hooks/use-mobile';
+
 export default function OrderHistory() {
   const { orders, isHighContrast, isLargeText } = useStore();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
+  const isMobile = useIsMobile();
 
   const handlePrint = () => {
     window.print();
@@ -73,18 +76,18 @@ export default function OrderHistory() {
                     </div>
                   </div>
 
-                  <div className="flex-1 flex gap-2 overflow-x-auto py-1 no-scrollbar">
-                    {order.items.slice(0, 3).map((item, idx) => (
+                  <div className="flex-1 flex gap-2 overflow-x-auto py-1 no-scrollbar max-w-full md:max-w-md">
+                    {order.items.slice(0, isMobile ? 2 : 3).map((item, idx) => (
                       <div 
                         key={idx}
-                        className="flex-shrink-0 bg-zinc-50 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-zinc-500 border"
+                        className="flex-shrink-0 bg-zinc-50 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-zinc-500 border whitespace-nowrap"
                       >
                         {item.quantity}x {item.name}
                       </div>
                     ))}
-                    {order.items.length > 3 && (
-                      <div className="flex-shrink-0 bg-zinc-50 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-zinc-400 border">
-                        +{order.items.length - 3} lagi
+                    {order.items.length > (isMobile ? 2 : 3) && (
+                      <div className="flex-shrink-0 bg-zinc-50 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-zinc-400 border whitespace-nowrap">
+                        +{order.items.length - (isMobile ? 2 : 3)} lagi
                       </div>
                     )}
                   </div>

@@ -7,6 +7,7 @@ import { cn, formatRupiah } from '@/lib/utils';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import toast from 'react-hot-toast';
+import ConfirmationModal from './ConfirmationModal';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -15,6 +16,7 @@ export default function Inventory() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [newPrice, setNewPrice] = useState<string>('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
@@ -54,10 +56,9 @@ export default function Inventory() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-      deleteProduct(id);
-      toast.success('Produk berhasil dihapus');
-    }
+    deleteProduct(id);
+    setDeleteId(null);
+    toast.success('Produk berhasil dihapus');
   };
 
   return (
@@ -65,6 +66,14 @@ export default function Inventory() {
       "flex-1 flex flex-col overflow-hidden bg-zinc-50",
       isHighContrast && "bg-black"
     )}>
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => deleteId && handleDelete(deleteId)}
+        title="Hapus Produk"
+        message="Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan."
+        isHighContrast={isHighContrast}
+      />
       <div className={cn(
         "p-6 border-b bg-white flex flex-col md:flex-row gap-4 items-center justify-between",
         isHighContrast && "bg-black border-zinc-800"
@@ -178,10 +187,10 @@ export default function Inventory() {
 
           {/* List/Table */}
           {isMobile ? (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {products.map((product) => (
                 <div key={product.id} className={cn(
-                  "bg-white rounded-3xl border p-4 flex items-center gap-4",
+                  "bg-white rounded-3xl border p-4 flex items-center gap-4 shadow-sm",
                   isHighContrast && "bg-zinc-900 border-zinc-800 text-white"
                 )}>
                   <div className="w-16 h-16 relative rounded-2xl overflow-hidden bg-zinc-100 flex-shrink-0">
@@ -193,10 +202,10 @@ export default function Inventory() {
                       referrerPolicy="no-referrer"
                     />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-bold text-sm">{product.name}</h4>
-                      <span className="font-mono text-xs font-bold text-indigo-600">{formatRupiah(product.price)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <h4 className="font-bold text-sm truncate">{product.name}</h4>
+                      <span className="font-mono text-xs font-bold text-indigo-600 flex-shrink-0">{formatRupiah(product.price)}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500 text-[8px] font-bold uppercase tracking-wider">
@@ -206,7 +215,7 @@ export default function Inventory() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <button 
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => setDeleteId(product.id)}
                       className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -217,10 +226,10 @@ export default function Inventory() {
             </div>
           ) : (
             <div className={cn(
-              "bg-white rounded-[32px] border overflow-hidden",
+              "bg-white rounded-[32px] border overflow-x-auto",
               isHighContrast && "bg-zinc-900 border-zinc-800"
             )}>
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className={cn(
                     "bg-zinc-50/50 border-b",
@@ -291,7 +300,7 @@ export default function Inventory() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button 
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => setDeleteId(product.id)}
                           className="p-2 rounded-lg hover:bg-red-50 text-zinc-300 hover:text-red-500 transition-all"
                         >
                           <Trash2 className="w-5 h-5" />
